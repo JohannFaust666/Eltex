@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
+void my_exit_handler() {
+    printf("Program has exited normally.\n");
+}
+
+int main(int argc, char *argv[]) {
+    // Создание дочернего процесса
+    pid_t pid = fork();
+
+    if (pid == -1) {
+        perror("fork failed");
+        exit(EXIT_FAILURE);
+    } else if (pid == 0) {
+        // Код дочернего процесса
+        printf("I am the child process. My PID is %d\n", getpid());
+        printf("My arguments are:\n");
+        for (int i = 0; i < argc; i++) {
+            printf("%d: %s\n", i, argv[i]);
+        }
+        exit(EXIT_SUCCESS);
+    } else {
+        // Код родительского процесса
+        printf("I am the parent process. My PID is %d\n", getpid());
+        printf("My child's PID is %d\n", pid);
+        printf("My arguments are:\n");
+        for (int i = 0; i < argc; i++) {
+            printf("%d: %s\n", i, argv[i]);
+        }
+        // Ожидание завершения дочернего процесса
+        int status;
+        waitpid(pid, &status, 0);
+        printf("Child process has exited with status %d\n", status);
+    }
+
+    // Регистрация функции для вызова при нормальном завершении программы
+    atexit(my_exit_handler);
+
+    return 0;
+}
